@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IOU Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+        body { padding: 2rem 1rem; }
+        .summary { display: flex; justify-content: space-around; margin-bottom: 2rem; }
+        .summary article { text-align: center; }
+        .lent { color: var(--pico-color-green-500); }
+        .borrowed { color: var(--pico-color-red-500); }
+        .forms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .debt-item { 
+            display: grid; 
+            grid-template-columns: 2fr 1fr 2fr 1fr;
+            align-items: center; 
+            gap: 1rem;
+        }
+        .payment-form { display: flex; gap: 0.5rem; }
+        .payment-form input { margin-bottom: 0; }
+        
+        /* ## NEW ##: Styles for transaction history */
+        details { background-color: var(--pico-card-background-color); border-radius: var(--pico-card-border-radius); padding: 1rem; margin-top: 1rem; }
+        details summary { cursor: pointer; font-weight: bold; }
+        .transaction-list { list-style-type: none; padding-left: 0; }
+        .transaction-list li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--pico-muted-border-color); }
+        .transaction-list li:last-child { border-bottom: none; }
+        .trans-date { color: var(--pico-muted-color); font-size: 0.9em; }
+
+        @media (max-width: 992px) {
+            .forms-grid { grid-template-columns: 1fr; }
+            .debt-item { grid-template-columns: 1fr; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h1>My Panam kittal App</h1>
+        <!-- ... Summary and Forms sections are mostly unchanged, just the form action ... -->
+        <div class="summary">
+            <article><h4>Kittan</h4><h2 class="lent">₹{{ "%.2f"|format(total_owed) }}</h2></article>
+            <article><h4>Kodkkan</h4><h2 class="borrowed">₹{{ "%.2f"|format(total_owe) }}</h2></article>
+        </div>
+        <hr>
+        <div class="forms-grid">
+            <article>
+                <h3>Add Loan / Transaction</h3>
+                <!-- ## MODIFIED ##: Form now points to 'add_transaction' -->
+                <form action="{{ url_for('add_transaction') }}" method="POST">
+                    <label for="person_id">Aarkku?</label>
+                    <select id="person_id" name="person_id" required>
+                        <option value="" disabled selected>Select a person</option>
+                        {% for person in people %}<option value="{{ person.id }}">{{ person.name }}</option>{% endfor %}
+                    </select>
+                    <label for="direction">Direction</label>
+                    <select id="direction" name="direction" required>
+                        <option value="lent">Njan Koduthu</option>
+                        <option value="borrowed">Njan Vaangi</option>
+                    </select>
+                    <label for="amount">Amount (₹)</label>
+                    <input type="number" id="amount" name="amount" step="0.01" placeholder="e.g., 500" required>
+                    <label for="description">Vivaram</label>
+                    <input type="text" id="description" name="description" placeholder="e.g., Chayakku" required>
+                    <button type="submit">Add Transaction</button>
+                </form>
+            </article>
+            <article>
+                <h3>Add New Person</h3>
+                <form action="{{ url_for('add_person') }}" method="POST">
+                    <label for="person_name">Friend's Name</label>
+                    <input type="text" id="person_name" name="person_name" placeholder="e.g., Ramesh" required>
+                    <button type="submit">Add Person</button>
+                </form>
+            </article>
+        </div>
+        <hr>
+
+        <h2>Active Debts</h2>
+        {% if debts %}
+            {% for debt in debts %}
+            <article>
+                <div class="debt-item">
+                    <div>
+                        {% if debt.direction == 'lent' %}<strong class="lent">{{ debt.person.name }} Tharanam</strong>
+                        {% else %}<strong class="borrowed">Njan Kodukkanam {{ debt.person.name }}</strong>{% endif %}
+                    </div>
+                    <strong>₹{{ "%.2f"|format(debt.balance) }}</strong>
+                    <form action="{{ url_for('make_payment', debt_id=debt.id) }}" method="POST" class="payment-form">
+                        <input type="number" name="payment_amount" step="0.01" max="{{ debt.balance }}" placeholder="Pay Amount" required>
+                        <button type="submit" class="secondary outline">Pay</button>
+                    </form>
+                    <a href="{{ url_for('settle_debt', debt_id=debt.id) }}" role="button" class="contrast outline">Settle</a>
+                </div>
+                <!-- ## NEW ##: Expandable transaction history section -->
+                <details>
+                    <summary>History</summary>
+                    <ul class="transaction-list">
+                        {% for t in debt.transactions|sort(attribute='date', reverse=True) %}
+                        <li>
+                            <div>
+                                <strong class="{{ 'lent' if t.type == 'payment' else 'borrowed' }}">
+                                    {{ 'Payment' if t.type == 'payment' else 'Loan' }}:
+                                </strong>
+                                {{ t.description }}
+                                <br><span class="trans-date">{{ t.date.strftime('%d-%b-%Y') }}</span>
+                            </div>
+                            <strong>{{ '-' if t.type == 'payment' else '+' }}₹{{ "%.2f"|format(t.amount) }}</strong>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            </article>
+            {% endfor %}
+        {% else %}
+            <article><p>No active debts. All settled up!</p></article>
+        {% endif %}
+    </main>
+</body>
+</html>
