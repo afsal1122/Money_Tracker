@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- The title will be set by the page that extends this template -->
+    <title>{% block title %}{% endblock %} - IOU Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+        body { padding-top: 5rem; }
+        nav { padding: 0 1rem; }
+    </style>
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><a href="{{ url_for('index') }}"><strong>Panam kittal App</strong></a></li>
+        </ul>
+        <ul>
+            {% if current_user.is_authenticated %}
+                <li>Hello, {{ current_user.username }}!</li>
+                <li><a href="{{ url_for('logout') }}" role="button" class="secondary">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('register') }}" role="button">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="container">
+        <!-- Flash messages display here -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <article><p>{{ message }}</p></article>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- The content of other pages will be injected here -->
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
