@@ -1,14 +1,134 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- The title will be set by the page that extends this template -->
-    <title>{% block title %}{% endblock %} - IOU Tracker</title>
+    <title>{% block title %}{% endblock %} - Panam kittal App</title>
+    
+    <!-- Pico.css - Our base framework -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Our Custom Styles -->
     <style>
-        body { padding-top: 5rem; }
-        nav { padding: 0 1rem; }
+        /* --- General & Typography --- */
+        :root {
+            --card-bg-color: #ffffff;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --body-bg-color: #f4f5f7;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--body-bg-color);
+            padding-top: 6rem; /* Space for the fixed nav */
+        }
+
+        /* --- Navigation Bar --- */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: var(--card-shadow);
+            padding: 0 1rem;
+        }
+
+        /* --- Reusable Card Style --- */
+        .card {
+            background-color: var(--card-bg-color);
+            border-radius: var(--pico-border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* --- Summary Section --- */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .summary-card-content {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .summary-card-content .icon {
+            font-size: 2.5rem;
+            padding: 1rem;
+            border-radius: 50%;
+            background: var(--pico-muted-background-color);
+        }
+        .lent { color: var(--pico-color-green-500); }
+        .borrowed { color: var(--pico-color-red-500); }
+
+        /* --- Debt Item Styling --- */
+        .debt-item {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .debt-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+        .debt-item-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Allows wrapping on small screens */
+            gap: 1rem;
+        }
+        .debt-info h4, .debt-info small {
+            margin: 0;
+        }
+        .debt-balance {
+            font-size: 1.5rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .debt-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .payment-form { display: flex; gap: 0.5rem; flex-grow: 1; }
+        .payment-form input { margin-bottom: 0; }
+
+        /* --- History Details Styling --- */
+        details {
+            background-color: var(--body-bg-color);
+            margin-top: 1.5rem;
+        }
+        details summary {
+            font-weight: 600;
+        }
+        .transaction-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .transaction-amount {
+            font-weight: 600;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .summary-grid, .forms-grid { grid-template-columns: 1fr; }
+            .debt-item-main { flex-direction: column; align-items: flex-start; }
+            .debt-balance { margin-top: 0.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -28,16 +148,14 @@
     </nav>
 
     <main class="container">
-        <!-- Flash messages display here -->
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            {% for message in messages %}
-            <article><p>{{ message }}</p></article>
+            {% for category, message in messages %}
+            <article class="card"><p>{{ message }}</p></article>
             {% endfor %}
         {% endif %}
         {% endwith %}
 
-        <!-- The content of other pages will be injected here -->
         {% block content %}{% endblock %}
     </main>
 </body>
