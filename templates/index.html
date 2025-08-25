@@ -3,7 +3,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-    <!-- Summary Section -->
+    <!-- Summary Section (No changes here) -->
     <div class="summary-grid">
         <article class="card">
             <div class="summary-card-content">
@@ -27,27 +27,37 @@
 
     <!-- Forms Section -->
     <div class="forms-grid">
-        <article class="card">
-            <h3><i class="fa-solid fa-plus-circle"></i> Add Transaction</h3>
-            <form action="{{ url_for('add_transaction') }}" method="POST">
-                <!-- Form fields are the same -->
-                <label for="person_id">Aarkku?</label>
-                <select id="person_id" name="person_id" required>
-                    <option value="" disabled selected>Select a person</option>
-                    {% for person in people %}<option value="{{ person.id }}">{{ person.name }}</option>{% endfor %}
-                </select>
-                <label for="direction">Direction</label>
-                <select id="direction" name="direction" required>
-                    <option value="lent">Njan Koduthu (I Lent)</option>
-                    <option value="borrowed">Njan Vaangi (I Borrowed)</option>
-                </select>
-                <label for="amount">Amount (₹)</label>
-                <input type="number" id="amount" name="amount" step="0.01" placeholder="e.g., 500" required>
-                <label for="description">Vivaram</label>
-                <input type="text" id="description" name="description" placeholder="e.g., Chayakku" required>
-                <button type="submit">Add Transaction</button>
-            </form>
-        </article>
+        
+        <!-- ## IMPROVEMENT 1: Conditional "Add Transaction" Form ## -->
+        {% if people %}
+            <article class="card">
+                <h3><i class="fa-solid fa-plus-circle"></i> Add Transaction</h3>
+                <form action="{{ url_for('add_transaction') }}" method="POST">
+                    <label for="person_id">Aarkku?</label>
+                    <select id="person_id" name="person_id" required>
+                        <option value="" disabled selected>Select a person</option>
+                        {% for person in people %}<option value="{{ person.id }}">{{ person.name }}</option>{% endfor %}
+                    </select>
+                    <label for="direction">Direction</label>
+                    <select id="direction" name="direction" required>
+                        <option value="lent">Njan Koduthu (I Lent)</option>
+                        <option value="borrowed">Njan Vaangi (I Borrowed)</option>
+                    </select>
+                    <label for="amount">Amount (₹)</label>
+                    <input type="number" id="amount" name="amount" step="0.01" placeholder="e.g., 500" required>
+                    <label for="description">Vivaram</label>
+                    <input type="text" id="description" name="description" placeholder="e.g., Chayakku" required>
+                    <button type="submit">Add Transaction</button>
+                </form>
+            </article>
+        {% else %}
+            <article class="card">
+                <h3><i class="fa-solid fa-plus-circle"></i> Add Transaction</h3>
+                <p>You need to add a person before you can create a transaction.</p>
+                <p>Use the "Add New Person" form to get started!</p>
+            </article>
+        {% endif %}
+        
         <article class="card">
             <h3><i class="fa-solid fa-user-plus"></i> Add New Person</h3>
             <form action="{{ url_for('add_person') }}" method="POST">
@@ -81,10 +91,15 @@
             </div>
             <div class="debt-actions">
                 <form action="{{ url_for('make_payment', debt_id=debt.id) }}" method="POST" class="payment-form">
-                    <input type="number" name="payment_amount" step="0.01" max="{{ debt.balance }}" placeholder="Pay Amount" required>
+                    <!-- ## IMPROVEMENT 3: Add min="0.01" to prevent zero or negative payments ## -->
+                    <input type="number" name="payment_amount" step="0.01" min="0.01" max="{{ debt.balance }}" placeholder="Pay Amount" required>
                     <button type="submit" class="secondary outline">Pay</button>
                 </form>
-                <a href="{{ url_for('settle_debt', debt_id=debt.id) }}" role="button" class="contrast">Settle Full</a>
+                <!-- ## IMPROVEMENT 2: Add a confirmation dialog to the "Settle Full" button ## -->
+                <a href="{{ url_for('settle_debt', debt_id=debt.id) }}" 
+                   onclick="return confirm('Are you sure you want to mark this entire debt as settled?');" 
+                   role="button" 
+                   class="contrast">Settle Full</a>
             </div>
             
             <details>

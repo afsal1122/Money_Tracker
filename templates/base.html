@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} - Panam kittal App</title>
+
+    <!-- ## IMPROVEMENT 1: PWA Manifest Link ## -->
+    <link rel="manifest" href="{{ url_for('serve_manifest') }}">
+    
+    <!-- ## IMPROVEMENT 2: PWA Theme Color for Android status bar ## -->
+    <meta name="theme-color" content="#ffffff">
     
     <!-- Pico.css - Our base framework -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
@@ -28,7 +34,7 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--body-bg-color);
-            padding-top: 6rem; /* Space for the fixed nav */
+            padding-top: 6rem;
         }
 
         /* --- Navigation Bar --- */
@@ -53,7 +59,18 @@
             margin-bottom: 2rem;
         }
 
-        /* --- Summary Section --- */
+        /* ## IMPROVEMENT 4: Styles for Flash Messages ## */
+        .flash-message {
+            border-left: 5px solid;
+            padding: 1rem 1.5rem;
+        }
+        .flash-message.success { border-color: var(--pico-color-green-500); }
+        .flash-message.info { border-color: var(--pico-color-blue-500); }
+        .flash-message.warning { border-color: var(--pico-color-orange-500); }
+        .flash-message.danger { border-color: var(--pico-color-red-500); }
+        .flash-message p { margin: 0; }
+
+        /* ... (The rest of your CSS is unchanged) ... */
         .summary-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -72,8 +89,6 @@
         }
         .lent { color: var(--pico-color-green-500); }
         .borrowed { color: var(--pico-color-red-500); }
-
-        /* --- Debt Item Styling --- */
         .debt-item {
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
@@ -85,17 +100,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap; /* Allows wrapping on small screens */
+            flex-wrap: wrap;
             gap: 1rem;
         }
-        .debt-info h4, .debt-info small {
-            margin: 0;
-        }
-        .debt-balance {
-            font-size: 1.5rem;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+        .debt-info h4, .debt-info small { margin: 0; }
+        .debt-balance { font-size: 1.5rem; font-weight: 600; white-space: nowrap; }
         .debt-actions {
             display: flex;
             gap: 1rem;
@@ -105,25 +114,10 @@
         }
         .payment-form { display: flex; gap: 0.5rem; flex-grow: 1; }
         .payment-form input { margin-bottom: 0; }
-
-        /* --- History Details Styling --- */
-        details {
-            background-color: var(--body-bg-color);
-            margin-top: 1.5rem;
-        }
-        details summary {
-            font-weight: 600;
-        }
-        .transaction-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .transaction-amount {
-            font-weight: 600;
-        }
-
-        /* Responsive adjustments */
+        details { background-color: var(--body-bg-color); margin-top: 1.5rem; }
+        details summary { font-weight: 600; }
+        .transaction-list li { display: flex; justify-content: space-between; align-items: center; }
+        .transaction-amount { font-weight: 600; }
         @media (max-width: 768px) {
             .summary-grid, .forms-grid { grid-template-columns: 1fr; }
             .debt-item-main { flex-direction: column; align-items: flex-start; }
@@ -151,12 +145,28 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-            <article class="card"><p>{{ message }}</p></article>
+            <!-- ## IMPROVEMENT 4: Apply the new flash message styles ## -->
+            <article class="card flash-message {{ category|default('info') }}">
+                <p>{{ message }}</p>
+            </article>
             {% endfor %}
         {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
     </main>
+
+    <!-- ## IMPROVEMENT 3: Service Worker Registration Script ## -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{{ url_for('serve_sw') }}").then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
 </body>
 </html>
